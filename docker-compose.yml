@@ -1,0 +1,139 @@
+name: virtual-tryon
+
+x-common-env: &common-env
+  REDIS_URL: redis://redis:6379/0
+  DATA_DIR: /data
+  GARMENT_DIR: /garments
+  MODEL_NAME: ${MODEL_NAME:-catvton}
+  RESULT_TTL: ${RESULT_TTL:-3600}
+  QUEUE_TIMEOUT: ${QUEUE_TIMEOUT:-180}
+  INFERENCE_TIMEOUT: ${INFERENCE_TIMEOUT:-180}
+
+x-worker-env: &worker-env
+  <<: *common-env
+  MODEL_PATH: ${MODEL_PATH:-/models/catvton}
+  BASE_MODEL_PATH: ${BASE_MODEL_PATH:-/models/base}
+  VAE_MODEL_PATH: /models/vae
+  HF_HOME: /tmp/huggingface
+  HF_HUB_OFFLINE: '1'
+  TRANSFORMERS_OFFLINE: '1'
+  CUDA_VISIBLE_DEVICES: '0'
+  WIDTH: ${WIDTH:-576}
+  HEIGHT: ${HEIGHT:-768}
+  INFERENCE_STEPS: ${INFERENCE_STEPS:-20}
+  MASK_CACHE_SIZE: ${MASK_CACHE_SIZE:-8}
+  WARMUP_PERSON: /opt/CatVTON/resource/demo/example/person/men/model_5.png
+
+x-worker: &worker
+  image: virtual-tryon-worker:local
+  build:
+    context: .
+    dockerfile: worker/Dockerfile
+  init: true
+  restart: unless-stopped
+  stop_grace_period: 200s
+  shm_size: 2gb
+  volumes:
+    - ./models:/models:ro
+    - ./data:/data
+    - ./garments:/garments:ro
+  depends_on:
+    redis: {condition: service_healthy}
+    model-init: {condition: service_completed_successfully}
+  healthcheck:
+    test: ["CMD", "python", "scripts/worker-health.py"]
+    interval: 15s
+    timeout: 8s
+    start_period: 10m
+    retries: 3
+  logging:
+    driver: json-file
+    options: {max-size: 20m, max-file: '3'}
+
+services:
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec", "--maxmemory", "1gb", "--maxmemory-policy", "noeviction"]
+    restart: unless-stopped
+    volumes: ["redis-data:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  model-init:
+    image: virtual-tryon-worker:local
+    build: {context: ., dockerfile: worker/Dockerfile}
+    command: ["python", "scripts/download-models.py"]
+    environment:
+      HF_HOME: /models/huggingface
+      HF_TOKEN: ${HF_TOKEN:-}
+      HF_ENDPOINT: ${HF_ENDPOINT:-https://huggingface.co}
+    volumes: ["./models:/models"]
+    restart: 'no'
+
+  backend:
+    build: {context: ., dockerfile: backend/Dockerfile}
+    image: virtual-tryon-backend:local
+    restart: unless-stopped
+    init: true
+    environment: *common-env
+    volumes: ["./data:/data", "./garments:/garments:ro"]
+    ports: ["${API_BIND:-127.0.0.1}:${API_PORT:-8000}:8000"]
+    depends_on:
+      redis: {condition: service_healthy}
+
+  scheduler:
+    image: virtual-tryon-backend:local
+    build: {context: ., dockerfile: backend/Dockerfile}
+    command: ["python", "-m", "backend.app.scheduler.scheduler"]
+    restart: unless-stopped
+    init: true
+    environment: *common-env
+    volumes: ["./data:/data"]
+    depends_on:
+      redis: {condition: service_healthy}
+
+  frontend:
+    build: {context: ., dockerfile: frontend/Dockerfile}
+    ports: ["${FRONTEND_PORT:-3000}:3000"]
+    restart: unless-stopped
+    init: true
+    depends_on: [backend]
+
+  worker-gpu0:
+    <<: *worker
+    environment: {<<: *worker-env, GPU_ID: '0'}
+    deploy: {resources: {reservations: {devices: [{driver: nvidia, device_ids: ['0'], capabilities: [gpu]}]}}}
+  worker-gpu1:
+    <<: *worker
+    environment: {<<: *worker-env, GPU_ID: '1'}
+    deploy: {resources: {reservations: {devices: [{driver: nvidia, device_ids: ['1'], capabilities: [gpu]}]}}}
+  worker-gpu2:
+    <<: *worker
+    environment: {<<: *worker-env, GPU_ID: '2'}
+    deploy: {resources: {reservations: {devices: [{driver: nvidia, device_ids: ['2'], capabilities: [gpu]}]}}}
+  worker-gpu3:
+    <<: *worker
+    environment: {<<: *worker-env, GPU_ID: '3'}
+    deploy: {resources: {reservations: {devices: [{driver: nvidia, device_ids: ['3'], capabilities: [gpu]}]}}}
+  worker-gpu4:
+    <<: *worker
+    environment: {<<: *worker-env, GPU_ID: '4'}
+    deploy: {resources: {reservations: {devices: [{driver: nvidia, device_ids: ['4'], capabilities: [gpu]}]}}}
+  worker-gpu5:
+    <<: *worker
+    environment: {<<: *worker-env, GPU_ID: '5'}
+    deploy: {resources: {reservations: {devices: [{driver: nvidia, device_ids: ['5'], capabilities: [gpu]}]}}}
+  worker-gpu6:
+    <<: *worker
+    environment: {<<: *worker-env, GPU_ID: '6'}
+    deploy: {resources: {reservations: {devices: [{driver: nvidia, device_ids: ['6'], capabilities: [gpu]}]}}}
+  worker-gpu7:
+    <<: *worker
+    environment: {<<: *worker-env, GPU_ID: '7'}
+    deploy: {resources: {reservations: {devices: [{driver: nvidia, device_ids: ['7'], capabilities: [gpu]}]}}}
+
+volumes:
+  redis-data:

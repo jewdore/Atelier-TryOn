@@ -1,0 +1,11 @@
+.env
+.venv/
+.bench-venv/
+__pycache__/
+node_modules/
+.next/
+models/
+data/
+reports/
+.pytest_cache/
+*.tsbuildinfo

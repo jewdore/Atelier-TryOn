@@ -1,0 +1,12 @@
+.git
+.venv
+.bench-venv
+models
+data
+reports
+**/__pycache__
+frontend/node_modules
+frontend/.next
+frontend/*.tsbuildinfo
+garments
+tests

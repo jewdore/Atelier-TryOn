@@ -398,7 +398,7 @@ if __name__ == "__main__":
     from data.utils import scan_files_in_dir
 
     for i in scan_files_in_dir(
-        "/home/chongzheng/Projects/try-on-project/Datasets/VITONHD-1024/test/Images"
+        os.environ.get("VITONHD_IMAGE_DIR", "./datasets/VITONHD-1024/test/Images")
     ):
         image_path = i.path
 

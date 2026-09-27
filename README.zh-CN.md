@@ -173,9 +173,9 @@ python scripts/benchmark.py --video person.mp4 \
 2. 提交聚焦 Issue，包含硬件、驱动、模型版本、输入限制和不含私有媒体的日志。
 3. 提交小型 Pull Request：测试、部署修复、模型适配器、UI 或文档改进。
 4. 提供已经授权的服装/视频样本或质量报告。
-5. Buy Me a Coffee 页面启用后，再通过赞助支持持续开发。
+5. [通过爱发电赞助 Atelier TryOn](https://afdian.com/a/jerry)，支持持续开发、GPU 测试和文档维护。
 
-目前不会在仓库里放未经确认的收款用户名，避免把捐助导向错误账户。具体启用方案见 [SUPPORT.md](SUPPORT.md)。
+赞助完全自愿，不代表购买模型授权、推理服务或保证响应的技术支持。更多助力方式见 [SUPPORT.md](SUPPORT.md)。
 
 ## 路线图
 

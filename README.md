@@ -167,7 +167,9 @@ See `vendor/CatVTON/LICENSE`, `vendor/CatVTON/README.md`, `vendor/CatV2TON/READM
 
 ## Support the project
 
-The most useful support is a reproducible benchmark, a focused sanitized issue, a small pull request, or authorized garment/video quality data. Financial support can be added through Buy Me a Coffee after the creator username is verified. See [SUPPORT.md](SUPPORT.md).
+If this project helps you, [support Atelier TryOn on Afdian](https://afdian.com/a/jerry). Voluntary contributions help with development, GPU testing, and documentation; they do not purchase model licenses, inference access, or guaranteed support.
+
+You can also help with a reproducible benchmark, a focused sanitized issue, a small pull request, or authorized garment/video quality data. See [SUPPORT.md](SUPPORT.md).
 
 ## Roadmap
 
